@@ -1,1 +1,18 @@
-
+{
+    "configurations" : [
+        {
+            "name" : "3DS",
+            "includePath": [
+                "C:/devkitPro/libctru/include",
+                "C:/devkitPro/devkitARM/arm-none-eabi/include",
+                "C:/devkitPro/devkitARM/lib/gcc/arm-none-eabi/15.1.0/include"
+            ], 
+            "defines": [
+                "__3DS__"
+            ],
+            "cStandard": "c11",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}
