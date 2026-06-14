@@ -12,6 +12,11 @@ typedef struct {
 } palabrasPartida;
 
 int IDimpostores[6] = {-1, -1, -1, -1, -1, -1};
+bool palabraVistaJugador[] = {false, false, false, false, false, false, false, false, false, false, false, false};
+int numPalabrasVistas = 0;
+int viendoPalabra = -1;
+int id;
+char textoTarjeta[50] = "   ";
 
 bool abrirPalabrasTXT() {
     palabrasTXT = fopen("romfs:/palabras_impostor.txt", "r");
@@ -73,4 +78,31 @@ void crearImpostores(int numJugadores, int numImpostores){
             IDimpostores[i] = rand() % numJugadores;
         }
     } while(comprobarImpostoresRepetidos(numJugadores, numImpostores));
+}
+
+bool comprobarImpostor(int numJugador, int numImpostores){
+    for(int i = 0; i < numImpostores; i++){
+        if(IDimpostores[i] == numJugador) return true;
+    }
+    return false;
+}
+
+void crearTextoTarjeta(int numJugador, int numImpostores, palabrasPartida palabras){
+    if(comprobarImpostor(numJugador, numImpostores)){
+        sprintf(textoTarjeta, "IMPOSTOR\nPista: %s", palabras.pistaImpostor);
+    }
+    else{
+        sprintf(textoTarjeta, "%s", palabras.palabraJugadores);
+    }
+    if(strlen(textoTarjeta) > 2) textoTarjeta[strlen(textoTarjeta) - 2] = '\0';
+}
+
+void borrarTextoTarjeta() {
+    sprintf(textoTarjeta, "                                               ");
+}
+
+u32 colorTextoTarjeta(int numJugador, int numImpostores) {
+    if(comprobarImpostor(numJugador, numImpostores)){
+        return C2D_Color32(0xDF, 0x34, 0x39, 0xFF);
+    } else return C2D_Color32(0x45, 0xD0, 0xBF, 0xFF);
 }

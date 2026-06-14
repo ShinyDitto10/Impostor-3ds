@@ -1,4 +1,4 @@
-main.o: C:/Users/Mateo/desktop/2d_shapes/source/main.c \
+main.o: C:/Users/Mateo/desktop/Impostor3DS/source/main.c \
  C:/devkitPro/libctru/include/citro2d.h \
  C:/devkitPro/libctru/include/citro3d.h \
  C:/devkitPro/libctru/include/c3d/types.h \
@@ -109,8 +109,8 @@ main.o: C:/Users/Mateo/desktop/2d_shapes/source/main.c \
  C:/devkitPro/libctru/include/c2d/sprite.h \
  C:/devkitPro/libctru/include/c2d/text.h \
  C:/devkitPro/libctru/include/c2d/font.h \
- C:/Users/Mateo/desktop/2d_shapes/source/gameplay.h \
- C:/Users/Mateo/desktop/2d_shapes/source/menu_gameplay.h
+ C:/Users/Mateo/desktop/Impostor3DS/source/gameplay.h \
+ C:/Users/Mateo/desktop/Impostor3DS/source/menu_gameplay.h
 C:/devkitPro/libctru/include/citro2d.h:
 C:/devkitPro/libctru/include/citro3d.h:
 C:/devkitPro/libctru/include/c3d/types.h:
@@ -221,5 +221,5 @@ C:/devkitPro/libctru/include/c2d/spritesheet.h:
 C:/devkitPro/libctru/include/c2d/sprite.h:
 C:/devkitPro/libctru/include/c2d/text.h:
 C:/devkitPro/libctru/include/c2d/font.h:
-C:/Users/Mateo/desktop/2d_shapes/source/gameplay.h:
-C:/Users/Mateo/desktop/2d_shapes/source/menu_gameplay.h:
+C:/Users/Mateo/desktop/Impostor3DS/source/gameplay.h:
+C:/Users/Mateo/desktop/Impostor3DS/source/menu_gameplay.h:

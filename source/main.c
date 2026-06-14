@@ -29,8 +29,8 @@ int numImpostores = 1;
 
 C2D_TextBuf g_staticBuf;
 C2D_TextBuf g_dynamicBuf;
-C2D_Text g_dynamicText[13];
-C2D_Text g_staticText[18];
+C2D_Text g_dynamicText[14];
+C2D_Text g_staticText[21];
 
 bool tocandoRectangulo(touchPosition touch, float x, float y, float w, float h){
 	if(touch.px < x + w && touch.px > x && touch.py < y + h && touch.py > y) return true;
@@ -56,10 +56,6 @@ int main(int argc, char* argv[]) {
 	abrirPalabrasTXT();
 	int numPalabrasArchivo = getNumPalabrasArchivo();
 	palabrasPartida palabrasRonda = escogerPalabrasPartida(numPalabrasArchivo);
-	char palabraJugadores[50];
-	char pistaImpostor[50];
-	sprintf(palabraJugadores, "La palabra es %s", palabrasRonda.palabraJugadores);
-	sprintf(pistaImpostor, "La pista es %s", palabrasRonda.pistaImpostor);
 
 	// Preparar pantallas
 	C3D_RenderTarget* bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
@@ -72,6 +68,7 @@ int main(int argc, char* argv[]) {
 	u32 clrBg = C2D_Color32(0x00, 0x00, 0x80, 0xFF);
 	u32 clrLight = C2D_Color32(0x80, 0x80, 0xFF, 0xFF);
     u32 clrTrans = C2D_Color32(0x00, 0x00, 0x00, 0x00);
+	u32 clrTarjeta = C2D_Color32(0xFF, 0x4B, 0x33, 0xFF);
 	
 
 	// Preparar texto estático
@@ -95,7 +92,10 @@ int main(int argc, char* argv[]) {
 	C2D_TextParse(&g_staticText[15], g_staticBuf, "Empezar partida");
 	C2D_TextParse(&g_staticText[16], g_staticBuf, "-");
 	C2D_TextParse(&g_staticText[17], g_staticBuf, "+");
-	for(int i = 0; i < 18; i++){
+	C2D_TextParse(&g_staticText[18], g_staticBuf, "Escoge tu nombre de la lista:");
+	C2D_TextParse(&g_staticText[19], g_staticBuf, "Pulsa para ver\ntu palabra");
+	C2D_TextParse(&g_staticText[20], g_staticBuf, "Siguiente jugador");
+	for(int i = 0; i < 21; i++){
 	    C2D_TextOptimize(&g_staticText[i]);
 	}
 
@@ -154,6 +154,8 @@ int main(int argc, char* argv[]) {
 		sprintf(numImpostoresMenu, "%d", numImpostores);
 		C2D_TextParse(&g_dynamicText[12], g_dynamicBuf, numImpostoresMenu);
 		C2D_TextOptimize(&g_dynamicText[12]);
+		C2D_TextParse(&g_dynamicText[13], g_dynamicBuf, textoTarjeta);
+		C2D_TextOptimize(&g_dynamicText[13]);
 		
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(bottom, clrBg);
@@ -224,7 +226,14 @@ int main(int argc, char* argv[]) {
 
 			if (tocandoRectangulo(touch, 15, 20, 139, 65) && numJugadores < 12 && !pulsandoPantallaUltimoFrame) numJugadores++;
 		    if (tocandoRectangulo(touch, 166, 20, 139, 65) && numJugadores > 3 && !pulsandoPantallaUltimoFrame) numJugadores--;
-			if (tocandoRectangulo(touch, 100, 200, 120, 35)) menuActivo = MENU_PARTIDA;
+
+			if (tocandoRectangulo(touch, 235, 95, 15, 25) && numImpostores > 1 && !pulsandoPantallaUltimoFrame) numImpostores--;
+			if (tocandoRectangulo(touch, 285, 95, 15, 25) && numImpostores < numJugadores - 2 && numImpostores < 6 && !pulsandoPantallaUltimoFrame) numImpostores++;
+
+			if (tocandoRectangulo(touch, 100, 200, 120, 35)){
+				menuActivo = MENU_PARTIDA;
+				crearImpostores(numJugadores, numImpostores);
+			}
 	        else if (kDown & KEY_B){
 	            menuActivo = MENU_PRINCIPAL;
 			}
@@ -232,7 +241,53 @@ int main(int argc, char* argv[]) {
 
 		else if (menuActivo == MENU_PARTIDA){
 			C2D_SceneBegin(bottom);
+			C2D_DrawRectSolid(40, 40, 0.0f, 240, 150, (viendoPalabra == -1) ? clrBg : clrBlue);
+			C2D_DrawText(&g_dynamicText[13], C2D_WithColor | C2D_AlignCenter, 160, 80, 0.0f, 1, 1, clrTarjeta);
+			C2D_DrawRectSolid(70, 200, 0.0f, 180, 35, (viendoPalabra == -1) ? clrBg : clrBlue);
+			C2D_DrawText(&g_staticText[20], C2D_WithColor | C2D_AlignCenter, 160, 210, 0.0f, 0.6f, 0.6f, (viendoPalabra == -1) ? clrTrans : clrWhite);
+			if(viendoPalabra != -1 && !palabraVistaJugador[viendoPalabra]){
+				C2D_DrawText(&g_staticText[19], C2D_WithColor | C2D_AlignCenter, 160, 80, 0.0f, 1, 1, clrWhite);
+			}
+
 			C2D_SceneBegin(top);
+			crearMenuGameplayArriba(numJugadores);
+			C2D_DrawText(&g_staticText[18], C2D_WithColor | C2D_AlignCenter, 200, 10, 0.0f, 0.75f, 0.75f, clrWhite);
+			C2D_DrawText(&g_dynamicText[0], C2D_WithColor | C2D_AlignCenter, 73, 50, 0.0f, 0.65f, 0.65f, clrWhite);
+			C2D_DrawText(&g_dynamicText[1], C2D_WithColor | C2D_AlignCenter, 198, 50, 0.0f, 0.65f, 0.65f, clrWhite);
+			C2D_DrawText(&g_dynamicText[2], C2D_WithColor | C2D_AlignCenter, 323, 50, 0.0f, 0.65f, 0.65f, clrWhite);
+			C2D_DrawText(&g_dynamicText[3], C2D_WithColor | C2D_AlignCenter, 73, 94, 0.0f, 0.65f, 0.65f, (numJugadores < 4) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[4], C2D_WithColor | C2D_AlignCenter, 198, 94, 0.0f, 0.65f, 0.65f, (numJugadores < 5) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[5], C2D_WithColor | C2D_AlignCenter, 323, 94, 0.0f, 0.65f, 0.65f, (numJugadores < 6) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[6], C2D_WithColor | C2D_AlignCenter, 73, 138, 0.0f, 0.65f, 0.65f, (numJugadores < 7) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[7], C2D_WithColor | C2D_AlignCenter, 198, 138, 0.0f, 0.65f, 0.65f, (numJugadores < 8) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[8], C2D_WithColor | C2D_AlignCenter, 323, 138, 0.0f, 0.65f, 0.65f, (numJugadores < 9) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[9], C2D_WithColor | C2D_AlignCenter, 73, 182, 0.0f, 0.65f, 0.65f, (numJugadores < 10) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[10], C2D_WithColor | C2D_AlignCenter, 198, 182, 0.0f, 0.65f, 0.65f, (numJugadores < 11) ? clrTrans : clrWhite);
+			C2D_DrawText(&g_dynamicText[11], C2D_WithColor | C2D_AlignCenter, 323, 182, 0.0f, 0.65f, 0.65f, (numJugadores < 12) ? clrTrans : clrWhite);
+
+			if(viendoPalabra == -1){
+			    if(kDown & KEY_DDOWN && botonSeleccionado.y < 3) botonSeleccionado.y++;
+			    if(kDown & KEY_DUP && botonSeleccionado.y > 0) botonSeleccionado.y--;
+			    if(kDown & KEY_DRIGHT && botonSeleccionado.x < 2) botonSeleccionado.x++;
+			    if(kDown & KEY_DLEFT && botonSeleccionado.x > 0) botonSeleccionado.x--;
+				id = posicionAid(botonSeleccionado);
+
+				if(kDown & KEY_A && id < numJugadores && !palabraVistaJugador[id]){
+					viendoPalabra = id;
+				}
+			} else if(!palabraVistaJugador[viendoPalabra]){
+				if(tocandoRectangulo(touch, 40, 40, 240, 150)){
+					palabraVistaJugador[viendoPalabra] = true;
+					clrTarjeta = colorTextoTarjeta(viendoPalabra, numImpostores);
+					crearTextoTarjeta(viendoPalabra, numImpostores, palabrasRonda);
+				}
+			} else{
+				if(tocandoRectangulo(touch, 120, 200, 100, 35)){
+					borrarTextoTarjeta();
+					viendoPalabra = -1;
+					numPalabrasVistas++;
+				}
+			}
 			if(kDown & KEY_B) menuActivo = MENU_PRINCIPAL;
 		}
 		
