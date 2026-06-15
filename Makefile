@@ -39,7 +39,10 @@ INCLUDES	:=	include
 GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs
-GFXBUILD	:=	$(ROMFS)/gfx
+GFXBUILD	:=	$(ROMFS)/gfxmake
+APP_TITLE   :=  Impostor 3DS
+APP_DESCRIPTION  :=  El juego del impostor para 3DS
+APP_AUTHOR  :=  ShinyDitto10, mayi2323
 
 #---------------------------------------------------------------------------------
 # options for code generation

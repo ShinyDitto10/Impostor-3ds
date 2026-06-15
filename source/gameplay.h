@@ -17,6 +17,7 @@ int numPalabrasVistas = 0;
 int viendoPalabra = -1;
 int id;
 char textoTarjeta[50] = "   ";
+bool partidaTerminada = false;
 
 bool abrirPalabrasTXT() {
     palabrasTXT = fopen("romfs:/palabras_impostor.txt", "r");
@@ -58,9 +59,8 @@ palabrasPartida escogerPalabrasPartida(int numPalabrasArchivo) {
     return palabrasPartida;
 }
 
-bool cerrarPalabrasTXT() {
-    if(fclose(palabrasTXT) == NULL) return false;
-    else return true;
+void cerrarPalabrasTXT() {
+    fclose(palabrasTXT);
 }
 
 bool comprobarImpostoresRepetidos(int numJugadores, int numImpostores){
@@ -105,4 +105,8 @@ u32 colorTextoTarjeta(int numJugador, int numImpostores) {
     if(comprobarImpostor(numJugador, numImpostores)){
         return C2D_Color32(0xDF, 0x34, 0x39, 0xFF);
     } else return C2D_Color32(0x45, 0xD0, 0xBF, 0xFF);
+}
+
+int primerJugador(int numJugadores) {
+    return rand() % numJugadores;
 }

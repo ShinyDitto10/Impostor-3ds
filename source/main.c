@@ -26,11 +26,21 @@ enum MenuActivo {
 int menuActivo = MENU_PRINCIPAL;
 int numJugadores = 3;
 int numImpostores = 1;
+int jugadorComienza = 0;
+u64 tiempoTranscurrido;
+u64 tickInicial = 0;
+
+typedef struct{
+	int minutos;
+	int segundos;
+} Tiempo;
 
 C2D_TextBuf g_staticBuf;
 C2D_TextBuf g_dynamicBuf;
-C2D_Text g_dynamicText[14];
-C2D_Text g_staticText[21];
+C2D_Text g_dynamicText[17];
+C2D_Text g_staticText[23];
+
+Tiempo contadorTiempo;
 
 bool tocandoRectangulo(touchPosition touch, float x, float y, float w, float h){
 	if(touch.px < x + w && touch.px > x && touch.py < y + h && touch.py > y) return true;
@@ -47,9 +57,7 @@ int main(int argc, char* argv[]) {
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 
-	//Preparar teclado
 	
-
 	romfsInit();
     srand(time(NULL));
 
@@ -61,7 +69,7 @@ int main(int argc, char* argv[]) {
 	C3D_RenderTarget* bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 
-	// Create colors
+	// Crear colores
 	u32 clrBlue  = C2D_Color32(0x30, 0x30, 0xFF, 0xFF);
 	//u32 clrBlack  = C2D_Color32(0x00, 0x00, 0x00, 0xFF);
 	u32 clrWhite = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
@@ -70,7 +78,6 @@ int main(int argc, char* argv[]) {
     u32 clrTrans = C2D_Color32(0x00, 0x00, 0x00, 0x00);
 	u32 clrTarjeta = C2D_Color32(0xFF, 0x4B, 0x33, 0xFF);
 	
-
 	// Preparar texto estático
 	g_staticBuf = C2D_TextBufNew(4096);
 	g_dynamicBuf = C2D_TextBufNew(4096);
@@ -95,7 +102,9 @@ int main(int argc, char* argv[]) {
 	C2D_TextParse(&g_staticText[18], g_staticBuf, "Escoge tu nombre de la lista:");
 	C2D_TextParse(&g_staticText[19], g_staticBuf, "Pulsa para ver\ntu palabra");
 	C2D_TextParse(&g_staticText[20], g_staticBuf, "Siguiente jugador");
-	for(int i = 0; i < 21; i++){
+	C2D_TextParse(&g_staticText[21], g_staticBuf, "Terminar partida");
+	C2D_TextParse(&g_staticText[22], g_staticBuf, "Volver al menú");
+	for(int i = 0; i < 23; i++){
 	    C2D_TextOptimize(&g_staticText[i]);
 	}
 
@@ -126,6 +135,7 @@ int main(int argc, char* argv[]) {
 		u32 kDown = hidKeysDown();
 		if (kDown & KEY_START && menuActivo == MENU_PRINCIPAL) break;
         
+		//Comprobar pantalla táctil
 		if(pulsandoPantalla) pulsandoPantallaUltimoFrame = true;
 		else pulsandoPantallaUltimoFrame = false;
 		touchPosition touch;
@@ -133,6 +143,7 @@ int main(int argc, char* argv[]) {
 		if(touch.px == 0 && touch.py == 0) pulsandoPantalla = false;
 		else pulsandoPantalla = true;
 
+		//Teclado
 		if (menuActivo == MENU_GAMEPLAY && kDown & KEY_A && posicionAid(botonSeleccionado) < numJugadores){
 			char buffer[16];
 			swkbdInit(&swkbd, SWKBD_TYPE_NORMAL, 2, 15);
@@ -156,6 +167,24 @@ int main(int argc, char* argv[]) {
 		C2D_TextOptimize(&g_dynamicText[12]);
 		C2D_TextParse(&g_dynamicText[13], g_dynamicBuf, textoTarjeta);
 		C2D_TextOptimize(&g_dynamicText[13]);
+		char jugadorComienzaOutput[31];
+		sprintf(jugadorComienzaOutput, "Empieza %s", nombreJug[jugadorComienza]);
+		C2D_TextParse(&g_dynamicText[14], g_dynamicBuf, jugadorComienzaOutput);
+		C2D_TextOptimize(&g_dynamicText[14]);
+
+		char tiempoTranscurridoOutput[31];
+		tiempoTranscurrido = (svcGetSystemTick() - tickInicial) / SYSCLOCK_ARM11;
+        contadorTiempo.minutos = tiempoTranscurrido / 60;
+		contadorTiempo.segundos = tiempoTranscurrido % 60;
+		sprintf(tiempoTranscurridoOutput, "Tiempo: %d:%02d", contadorTiempo.minutos, contadorTiempo.segundos);
+		C2D_TextParse(&g_dynamicText[15], g_dynamicBuf, tiempoTranscurridoOutput);
+		C2D_TextOptimize(&g_dynamicText[15]);
+
+		char palabraRevelada[60];
+		sprintf(palabraRevelada, "La palabra era\n%s", palabrasRonda.palabraJugadores);
+		palabraRevelada[strlen(palabraRevelada) - 2] = '\0';
+		C2D_TextParse(&g_dynamicText[16], g_dynamicBuf, palabraRevelada);
+		C2D_TextOptimize(&g_dynamicText[16]);
 		
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(bottom, clrBg);
@@ -225,13 +254,18 @@ int main(int argc, char* argv[]) {
 			if(kDown & KEY_DLEFT && botonSeleccionado.x > 0) botonSeleccionado.x--;
 
 			if (tocandoRectangulo(touch, 15, 20, 139, 65) && numJugadores < 12 && !pulsandoPantallaUltimoFrame) numJugadores++;
-		    if (tocandoRectangulo(touch, 166, 20, 139, 65) && numJugadores > 3 && !pulsandoPantallaUltimoFrame) numJugadores--;
-
+		    if (tocandoRectangulo(touch, 166, 20, 139, 65) && numJugadores > 3 && !pulsandoPantallaUltimoFrame) {
+				numJugadores--;
+				if(numImpostores + 1 == numJugadores) numImpostores--;
+			}
 			if (tocandoRectangulo(touch, 235, 95, 15, 25) && numImpostores > 1 && !pulsandoPantallaUltimoFrame) numImpostores--;
 			if (tocandoRectangulo(touch, 285, 95, 15, 25) && numImpostores < numJugadores - 2 && numImpostores < 6 && !pulsandoPantallaUltimoFrame) numImpostores++;
 
 			if (tocandoRectangulo(touch, 100, 200, 120, 35)){
 				menuActivo = MENU_PARTIDA;
+				abrirPalabrasTXT();
+	            numPalabrasArchivo = getNumPalabrasArchivo();
+	            palabrasRonda = escogerPalabrasPartida(numPalabrasArchivo);
 				crearImpostores(numJugadores, numImpostores);
 			}
 	        else if (kDown & KEY_B){
@@ -288,7 +322,42 @@ int main(int argc, char* argv[]) {
 					numPalabrasVistas++;
 				}
 			}
-			if(kDown & KEY_B) menuActivo = MENU_PRINCIPAL;
+
+			if(numPalabrasVistas == numJugadores){
+				jugadorComienza = primerJugador(numJugadores);
+				tickInicial = svcGetSystemTick();
+				menuActivo = MENU_RESULTADOS;
+			}
+		}
+
+		else if(menuActivo == MENU_RESULTADOS){
+			C2D_SceneBegin(bottom);
+			if(!partidaTerminada){
+			    C2D_DrawText(&g_dynamicText[14], C2D_WithColor | C2D_AlignCenter, 160, 70, 0.0f, 0.8f, 0.8f, clrWhite);
+			    C2D_DrawText(&g_dynamicText[15], C2D_WithColor | C2D_AlignCenter, 160, 95, 0.0f, 0.8f, 0.8f, clrWhite);
+			    C2D_DrawRectSolid(70, 130, 0.0f, 180, 35, clrBlue);
+			    C2D_DrawText(&g_staticText[21], C2D_WithColor | C2D_AlignCenter, 160, 140, 0.0f, 0.6f, 0.6f, clrWhite);
+				if(tocandoRectangulo(touch, 70, 130, 180, 35) && !pulsandoPantallaUltimoFrame) partidaTerminada = true;
+			} else{
+				C2D_DrawText(&g_dynamicText[16], C2D_WithColor | C2D_AlignCenter, 160, 70, 0.0f, 0.8f, 0.8f, clrWhite);
+				C2D_DrawRectSolid(70, 130, 0.0f, 180, 35, clrBlue);
+			    C2D_DrawText(&g_staticText[22], C2D_WithColor | C2D_AlignCenter, 160, 140, 0.0f, 0.6f, 0.6f, clrWhite);
+				if(tocandoRectangulo(touch, 70, 130, 180, 35) && !pulsandoPantallaUltimoFrame){
+					numPalabrasVistas = 0;
+					viendoPalabra = -1;
+					for(int i = 0; i < 6; i++){
+						IDimpostores[i] = -1;
+					}
+					for(int i = 0; i < 12; i++){
+						palabraVistaJugador[i] = false;
+					}
+					partidaTerminada = false;
+					fclose(palabrasTXT);
+
+					menuActivo = MENU_PRINCIPAL;
+				}
+			}
+			C2D_SceneBegin(top);
 		}
 		
 	    C3D_FrameEnd(0);
