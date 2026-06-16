@@ -10,7 +10,7 @@ void prepararTextoEstatico(){
     g_staticBuf = C2D_TextBufNew(4096);
 
     C2D_TextParse(&g_staticText[0], g_staticBuf, "IMPOSTOR");
-	C2D_TextParse(&g_staticText[1], g_staticBuf, "ver 0.0.0");
+	C2D_TextParse(&g_staticText[1], g_staticBuf, "ver 0.1.0");
 	C2D_TextParse(&g_staticText[2], g_staticBuf, "Creado por ShinyDitto10");
 	C2D_TextParse(&g_staticText[3], g_staticBuf, "Pulsa START para salir");
 	C2D_TextParse(&g_staticText[4], g_staticBuf, "Jugar");
